@@ -1,10 +1,10 @@
-const express = require('express');
-const cors = require('cors');
-const morgan = require('morgan');
-const Database = require('better-sqlite3');
+import express, { Request, Response, Application } from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+import Database from 'better-sqlite3';
 
 // Initialize express app
-const app = express();
+const app: Application = express();
 
 // Middleware
 app.use(cors());
@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 // Initialize in-memory SQLite database
-const db = new Database(':memory:');
+const db: Database.Database = new Database(':memory:');
 
 // Create tables for clothing items and weather
 db.exec(`
@@ -35,8 +35,24 @@ db.exec(`
   );
 `);
 
+interface ClothingItem {
+  category: string;
+  name: string;
+  temp_min: number;
+  temp_max: number;
+  rain: number;
+  wind: number;
+}
+
+interface WeatherData {
+  date: string;
+  temperature: number;
+  rain: number;
+  wind: number;
+}
+
 // Insert sample clothing items
-const clothingItems = [
+const clothingItems: ClothingItem[] = [
   { category: 'top', name: 'T-shirt', temp_min: 60, temp_max: 85, rain: 0, wind: 0 },
   { category: 'top', name: 'Long sleeve shirt', temp_min: 50, temp_max: 75, rain: 1, wind: 1 },
   { category: 'top', name: 'Sweater', temp_min: 40, temp_max: 65, rain: 0, wind: 1 },
@@ -55,16 +71,38 @@ const insertClothing = db.prepare(`
   VALUES (?, ?, ?, ?, ?, ?)
 `);
 
-clothingItems.forEach(item => {
-  insertClothing.run(item.category, item.name, item.temp_min, item.temp_max, item.rain, item.wind);
+clothingItems.forEach((item) => {
+  insertClothing.run(
+    item.category,
+    item.name,
+    item.temp_min,
+    item.temp_max,
+    item.rain,
+    item.wind
+  );
 });
 
 // Insert sample weather forecast for next 3 days
 const today = new Date();
-const weatherData = [
-  { date: new Date(today).toISOString().split('T')[0], temperature: 65, rain: 0, wind: 1 },
-  { date: new Date(today.getTime() + 86400000).toISOString().split('T')[0], temperature: 72, rain: 1, wind: 0 },
-  { date: new Date(today.getTime() + 172800000).toISOString().split('T')[0], temperature: 58, rain: 1, wind: 1 },
+const weatherData: WeatherData[] = [
+  {
+    date: new Date(today).toISOString().split('T')[0],
+    temperature: 65,
+    rain: 0,
+    wind: 1,
+  },
+  {
+    date: new Date(today.getTime() + 86400000).toISOString().split('T')[0],
+    temperature: 72,
+    rain: 1,
+    wind: 0,
+  },
+  {
+    date: new Date(today.getTime() + 172800000).toISOString().split('T')[0],
+    temperature: 58,
+    rain: 1,
+    wind: 1,
+  },
 ];
 
 const insertWeather = db.prepare(`
@@ -72,19 +110,21 @@ const insertWeather = db.prepare(`
   VALUES (?, ?, ?, ?)
 `);
 
-weatherData.forEach(w => {
+weatherData.forEach((w) => {
   insertWeather.run(w.date, w.temperature, w.rain, w.wind);
 });
 
 console.log('In-memory database initialized with clothing items and weather data');
 
 // Health check endpoint
-app.get('/', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'Outfit Recommendation API is running' });
+app.get('/', (_req: Request, res: Response) => {
+  res
+    .status(200)
+    .json({ status: 'ok', message: 'Outfit Recommendation API is running' });
 });
 
 // Get all clothing items by category
-app.get('/api/clothing', (req, res) => {
+app.get('/api/clothing', (req: Request, res: Response) => {
   try {
     const { category } = req.query;
     let query = 'SELECT * FROM clothing_items';
@@ -100,9 +140,11 @@ app.get('/api/clothing', (req, res) => {
 });
 
 // Get weather forecast for up to 3 days
-app.get('/api/weather', (req, res) => {
+app.get('/api/weather', (_req: Request, res: Response) => {
   try {
-    const forecast = db.prepare('SELECT * FROM weather_forecast ORDER BY date ASC LIMIT 3').all();
+    const forecast = db
+      .prepare('SELECT * FROM weather_forecast ORDER BY date ASC LIMIT 3')
+      .all();
     res.json(forecast);
   } catch (error) {
     console.error('Error fetching weather forecast:', error);
@@ -111,33 +153,37 @@ app.get('/api/weather', (req, res) => {
 });
 
 // Get outfit recommendation based on weather for a specific day
-app.post('/api/outfit-recommendation', (req, res) => {
+app.post('/api/outfit-recommendation', (req: Request, res: Response): void => {
   try {
     const { date } = req.body;
 
     if (!date) {
-      return res.status(400).json({ error: 'Date is required' });
+      res.status(400).json({ error: 'Date is required' });
+      return;
     }
 
     // Get weather for the specified date
     const weather = db.prepare('SELECT * FROM weather_forecast WHERE date = ?').get(date);
     if (!weather) {
-      return res.status(404).json({ error: 'Weather not found for the specified date' });
+      res
+        .status(404)
+        .json({ error: 'Weather not found for the specified date' });
+      return;
     }
 
     // Find suitable clothing items for each category
     const categories = ['top', 'bottom', 'shoes', 'jacket'];
-    const recommendation = { date, weather, suggestions: {} };
+    const recommendation: any = { date, weather, suggestions: {} };
 
-    categories.forEach(category => {
+    categories.forEach((category) => {
       let query = `SELECT * FROM clothing_items WHERE category = '${category}' 
-                   AND temp_min <= ${weather.temperature} 
-                   AND temp_max >= ${weather.temperature}`;
+                   AND temp_min <= ${(weather as any).temperature} 
+                   AND temp_max >= ${(weather as any).temperature}`;
 
-      if (weather.rain) {
+      if ((weather as any).rain) {
         query += ` AND suitable_for_rain = 1`;
       }
-      if (weather.wind) {
+      if ((weather as any).wind) {
         query += ` AND suitable_for_wind = 1`;
       }
 
@@ -152,4 +198,4 @@ app.post('/api/outfit-recommendation', (req, res) => {
   }
 });
 
-module.exports = { app, db };
+export { app, db };

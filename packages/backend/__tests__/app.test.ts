@@ -1,5 +1,5 @@
-const request = require('supertest');
-const { app, db } = require('../src/app');
+import request from 'supertest';
+import { app, db } from '../src/app';
 
 // Close the database connection after all tests
 afterAll(() => {
@@ -46,7 +46,7 @@ describe('API Endpoints - Outfit Recommendation', () => {
       expect(response.body.length).toBeGreaterThan(0);
 
       // All items should be tops
-      response.body.forEach(item => {
+      response.body.forEach((item: any) => {
         expect(item.category).toBe('top');
       });
     });

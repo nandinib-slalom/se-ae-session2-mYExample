@@ -22,14 +22,18 @@ const server = setupServer(
         },
         {
           id: 2,
-          date: new Date(today.getTime() + 86400000).toISOString().split('T')[0],
+          date: new Date(today.getTime() + 86400000)
+            .toISOString()
+            .split('T')[0],
           temperature: 72,
           rain: 1,
           wind: 0,
         },
         {
           id: 3,
-          date: new Date(today.getTime() + 172800000).toISOString().split('T')[0],
+          date: new Date(today.getTime() + 172800000)
+            .toISOString()
+            .split('T')[0],
           temperature: 58,
           rain: 1,
           wind: 1,
@@ -40,7 +44,7 @@ const server = setupServer(
 
   // POST /api/outfit-recommendation handler
   rest.post('/api/outfit-recommendation', (req, res, ctx) => {
-    const { date } = req.body;
+    const { date } = req.body as { date: string };
 
     if (!date) {
       return res(ctx.status(400), ctx.json({ error: 'Date is required' }));
@@ -231,7 +235,9 @@ describe('App Component - Outfit Recommendation', () => {
 
       // Check if temperature range is displayed
       await waitFor(() => {
-        expect(screen.getByText(/°F -/, { exact: false })).toBeInTheDocument();
+        expect(
+          screen.getByText(/°F -/, { exact: false })
+        ).toBeInTheDocument();
       });
     }
   });
