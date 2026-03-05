@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEvent, MouseEvent } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import './App.css';
 
 interface Weather {
@@ -41,7 +41,6 @@ function App(): JSX.Element {
   const [weatherForecast, setWeatherForecast] = useState<Weather[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [selections, setSelections] = useState<Selections>({
     top: null,
@@ -77,7 +76,6 @@ function App(): JSX.Element {
   const handleFindOutfit = async (date: string): Promise<void> => {
     try {
       setLoading(true);
-      setSelectedDate(date);
       const response = await fetch('/api/outfit-recommendation', {
         method: 'POST',
         headers: {
