@@ -12,3 +12,5 @@ The project documentation will be built during the bootcamp sessions.
 - [UI Guidelines](../docs/ui-guidelines.md) - Core UI guidelines for the application
 - [Testing Guidelines](../docs/testing-guidelines.md) - Comprehensive testing practices and requirements
 - [Coding Guidelines](../docs/coding-guidelines.md) - Code style, quality principles, and best practices
+- [Functional Requirements](../docs/functional-requirements.md) - Weather‑based outfit recommender requirements
+- [UI Guidelines](../docs/ui-guidelines.md) - Core UI guidelines for the application
